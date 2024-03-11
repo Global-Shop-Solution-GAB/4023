@@ -1,0 +1,291 @@
+Program.Sub.ScreenSU.Start
+gui.Form1..create
+gui.Form1..caption("Add Notes to Line")
+gui.Form1..size(7260,4560)
+gui.Form1..minx(0)
+gui.Form1..miny(0)
+gui.Form1..position(0,0)
+gui.Form1..event(unload,form1_unload)
+gui.Form1..alwaysontop(False)
+gui.Form1..fontname("Arial")
+gui.Form1..fontsize(8)
+gui.Form1..forecolor(0)
+gui.Form1..fontstyle(,,,,)
+gui.Form1..BackColor(-2147483633)
+gui.Form1..controlbox(True)
+gui.Form1..maxbutton(True)
+gui.Form1..minbutton(True)
+gui.Form1..mousepointer(0)
+gui.Form1..moveable(True)
+gui.Form1..sizeable(True)
+gui.Form1..ShowInTaskBar(True)
+gui.Form1..titlebar(True)
+gui.Form1.mltxtText.create(textboxm)
+gui.Form1.mltxtText.text("")
+gui.Form1.mltxtText.visible(True)
+gui.Form1.mltxtText.size(7020,3390)
+gui.Form1.mltxtText.zorder(0)
+gui.Form1.mltxtText.position(0,0)
+gui.Form1.mltxtText.enabled(True)
+gui.Form1.mltxtText.alignment(0)
+gui.Form1.mltxtText.fontname("Arial")
+gui.Form1.mltxtText.fontsize(8)
+gui.Form1.mltxtText.BackColor(-2147483643)
+gui.Form1.mltxtText.defaultvalue("")
+gui.Form1.mltxtText.controlgroup(0)
+gui.Form1.cmdSave.create(button)
+gui.Form1.cmdSave.caption("Save")
+gui.Form1.cmdSave.visible(True)
+gui.Form1.cmdSave.size(855,345)
+gui.Form1.cmdSave.zorder(0)
+gui.Form1.cmdSave.position(100,3475)
+gui.Form1.cmdSave.enabled(True)
+gui.Form1.cmdSave.fontname("Arial")
+gui.Form1.cmdSave.fontsize(8)
+gui.Form1.cmdSave.event(click,cmdsave_click)
+gui.Form1.cmdSave.defaultvalue("")
+gui.Form1.cmdSave.controlgroup(0)
+gui.Form1.cmdDel.create(button)
+gui.Form1.cmdDel.caption("Delete")
+gui.Form1.cmdDel.visible(True)
+gui.Form1.cmdDel.size(855,345)
+gui.Form1.cmdDel.zorder(0)
+gui.Form1.cmdDel.position(1115,3475)
+gui.Form1.cmdDel.enabled(True)
+gui.Form1.cmdDel.fontname("Arial")
+gui.Form1.cmdDel.fontsize(8)
+gui.Form1.cmdDel.event(click,cmddel_click)
+gui.Form1.cmdDel.defaultvalue("")
+gui.Form1.cmdDel.controlgroup(0)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.Global.sOrder.Declare(String)
+Variable.Global.sSeq.Declare(String)
+Variable.Global.sLine.Declare(String)
+Variable.Global.sPart.Declare(String)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sRet.Declare(String)
+
+V.Global.sOrder.Set(V.Passed.000003)
+V.Global.sSeq.Set(V.Passed.000004)
+
+F.Intrinsic.String.LPad(V.Global.sOrder,"0",7,V.Global.sOrder)
+F.Intrinsic.String.LPad(V.Global.sSeq,"0",4,V.Global.sSeq)
+
+
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(36610)
+		V.Passed.000178.Set("Line Item Notes")
+	F.Intrinsic.Control.Case(36650)
+		F.Intrinsic.Control.CallSub(Loadorder)
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4023_Shipment_Notes.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+program.sub.form1_unload.start
+F.Intrinsic.Control.SetErrorHandler("form1_unload_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+Gui.Form1..Visible(False)
+Gui.Form1.mltxtText.Text("")
+F.ODBC.Connection!conx.Close
+F.Intrinsic.Control.CallSub(Loadorder)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("form1_unload_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4023_Shipment_Notes.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.form1_unload.end
+
+program.sub.cmdsave_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdsave_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+
+V.Local.sSQL.Declare(String)
+V.Local.sLine.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sMsg.Declare(String)
+
+F.Intrinsic.Control.If(V.Screen.Form1!mltxtText.Text,=,"")
+	F.Intrinsic.UI.Msgbox("Please enter text information before saving","Unable to Save")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Concat(V.Global.sOrder,"-",V.Global.sSeq,V.Local.sRet)
+F.Intrinsic.String.Build("Select * from GCG_4023_ShipLineTxt where Order_no = '{0}' and line = '{1}'",V.Local.sRet,V.Global.sLine,V.local.sSQL)
+F.ODBC.Connection!conx.OpenRecordsetRW("rst",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.conx!rst.EOF,<>,True)
+	F.ODBC.conx!rst.Set!ORDER_NO(V.Local.sRet)
+	F.ODBC.conx!rst.Set!LINE(V.Global.sLine)
+	F.ODBC.conx!rst.Set!PART(V.Global.sPart)
+	F.ODBC.conx!rst.Set!TEXT(V.Screen.Form1!mltxtText.Text)
+	F.ODBC.conx!rst.Update
+	F.ODBC.conx!rst.Close
+F.Intrinsic.Control.Else
+	F.ODBC.conx!rst.AddNew
+	F.ODBC.conx!rst.Set!ORDER_NO(V.Local.sRet)
+	F.ODBC.conx!rst.Set!LINE(V.Global.sLine)
+	F.ODBC.conx!rst.Set!PART(V.Global.sPart)
+	F.ODBC.conx!rst.Set!TEXT(V.Screen.Form1!mltxtText.Text)
+	F.ODBC.conx!rst.Update
+	F.ODBC.conx!rst.Close
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Concat(V.Global.sOrder,"-",V.Global.sSeq,V.Local.sRet)
+F.Intrinsic.String.RPad(V.Global.sLine," ",3,V.Local.sLine)
+F.Intrinsic.String.Build("Notes saved for Order {0}, line {1}",V.Local.sRet,V.Local.sLine,V.Local.sMsg)
+F.Intrinsic.UI.Msgbox(V.Local.sMsg,"Save Successful")
+Gui.Form1.mltxtText.Text("")
+F.Intrinsic.Control.CallSub(Form1_unload)
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdsave_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4023_Shipment_Notes.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.cmdsave_click.end
+
+program.sub.cmddel_click.start
+F.Intrinsic.Control.SetErrorHandler("cmddel_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sOrder.Declare(String)
+
+F.Intrinsic.String.Concat(V.Global.sOrder,"-",V.Global.sSeq,V.Local.sOrder)
+'Execute delete query to delete record in GCG table
+F.Intrinsic.String.Build("Delete From GCG_4023_ShipLineTxt Where order_No = '{0}' and Line = '{1}'",V.local.sOrder,V.Global.sLine,V.local.sSQL)
+F.ODBC.Connection!conx.OpenRecordsetRW("rst",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.conx!rst.EOF,<>,True)
+	F.ODBC.Connection!conx.Execute(V.Local.sSQL)
+	'Gui.Form1.mltxtText.Text("")
+	F.ODBC.conx!rst.Close
+	F.Intrinsic.Control.CallSub(Form1_unload)
+F.Intrinsic.Control.Else
+	F.ODBC.conx!rst.Close
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmddel_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4023_Shipment_Notes.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.cmddel_click.end
+
+Program.Sub.LoadOrder.Start
+V.Local.sTitles.Declare(String)
+V.Local.sFormTitle.Declare(String)
+V.Local.sTextTitle.Declare(String)
+V.local.iWidths.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sOrdNo.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sLine.Declare(String)
+
+F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+F.Intrinsic.String.Build("Select Order_Rec, Part, Location, Order_desc, Qty_Ordered, Qty_Shipped, Date_order from Shipment_Lines where Order_No = '{0}' and Order_suffix = '{1}' and order_rec between '0' and '9999' order by order_rec",V.Global.sOrder,V.Global.sSeq,V.Local.sSQL)
+F.Intrinsic.String.Split("Item*!*Part*!*Loc*!*Part Description*!*Order Qty*!*Qty Shipped*!*Date Ordered","*!*",V.Local.sTitles)
+F.Intrinsic.String.Split("900*!*2000*!*900*!*4000*!*1200*!*1200*!*1200","*!*",V.Local.iWidths)
+F.Intrinsic.String.Concat(V.Global.sOrder,"-",V.Global.sSeq,V.Local.sFormTitle)
+F.Intrinsic.UI.Browser(V.Local.sFormTitle,"conx",V.Local.sSQL,V.Local.sTitles,V.Local.iWidths,"5500","8000",V.Local.sRet)
+
+F.Intrinsic.Control.If(V.local.sRet,<>,"***CANCEL***")
+	F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+	V.Global.sLine.Set(V.Local.sRet(0))
+	V.Global.sPart.Set(V.Local.sRet(1))
+	F.Intrinsic.String.RPad(V.Global.sLine," ",3,V.Local.sLine)
+	F.Intrinsic.String.Concat("Notes for Line Item ",V.Local.sLine,V.Local.sTextTitle)
+	F.Intrinsic.Control.CallSub(Loadtext)
+	Gui.Form1..Caption(V.Local.sTextTitle)
+	Gui.Form1..Show
+F.Intrinsic.Control.Else
+	F.ODBC.Connection!conx.Close
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+Program.Sub.LoadOrder.End
+
+Program.Sub.LoadText.Start
+F.Intrinsic.Control.SetErrorHandler("LoadText_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sSQL.Declare(String)
+V.Local.sRet.Declare(String)
+
+F.Intrinsic.String.Concat(V.Global.sOrder,"-",V.Global.sSeq,V.Local.sRet)
+
+F.Intrinsic.String.Build("Select * from GCG_4023_ShipLineTxt where Order_No = '{0}' and Line = '{1}'",V.Local.sRet,V.Global.sLine,V.Local.sSQL)
+F.ODBC.Connection!conx.OpenLocalRecordsetRO("rst",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.conx!rst.EOF,<>,True)
+	Gui.Form1.mltxtText.Text(V.ODBC.conx!rst.FieldValTrim!TEXT)
+F.Intrinsic.Control.Else
+F.ODBC.conx!rst.Close
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("LoadText_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4023_Shipment_Notes.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.LoadText.End
+
+Program.Sub.Comments.Start
+${$0$}$GCG_Shipment_Notes$}$AGM$}$7/10/2014
+${$1$}$$}$$}$1$}$36650$}$Script 1 Hook$}$5/16/2016 10:07:07 AM$}$(Program: ORD101; Screen: OES0101A)
+
+${$1$}$$}$$}$0$}$36610$}$Populate Hook$}$5/16/2016 10:06:08 AM$}$(Program: ORD101; Screen: OES0101A)
+
+Program.Sub.Comments.End
+
